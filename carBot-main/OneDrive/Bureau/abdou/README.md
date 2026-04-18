@@ -11,13 +11,12 @@
 |-----|------|
 | **Benaboud Roqia** | Développeuse principale — Backend, IA, Base de données |
 | **Abdrhmane Aref** | Développeur — Frontend, UI/UX, Intégration |
-| **ABBA** | Assistant IA — Architecture, Logique métier, Outils |
 
 ---
 
 ## ✨ Fonctionnalités
 
-- 🤖 **Abdou (Abba)** — Mécanicien IA qui comprend le français, le darija algérien et l'arabe
+- 🤖 **Abdou** — Mécanicien IA qui comprend le français, le darija algérien et l'arabe
 - 🔧 **Diagnostic de panne** — Analyse les symptômes et propose des solutions
 - 🏪 **Garages & Mécaniciens** — Trouve les ateliers à Aïn Mlila, Oum El Bouaghi, Aïn Beïda, Aïn Fakroun
 - 💰 **Prix & Stock** — Vérifie la disponibilité et les prix des pièces en DZD
@@ -35,16 +34,10 @@
 ## 🗺️ Zone couverte
 
 **Wilaya de Oum El Bouaghi (04)**
-- Aïn Mlila
-- Oum El Bouaghi
-- Aïn Beïda
-- Aïn Fakroun
+- Aïn Mlila · Oum El Bouaghi · Aïn Beïda · Aïn Fakroun
 
-**Base de données locale:**
-- 53 pièces automobiles
-- 15 véhicules compatibles
-- 13 fournisseurs
-- 23 garages & mécaniciens
+**Base de données locale :**
+- 53 pièces automobiles · 15 véhicules · 13 fournisseurs · 23 garages & mécaniciens
 
 ---
 
@@ -53,42 +46,44 @@
 | Composant | Technologie |
 |-----------|-------------|
 | Backend | Python 3.11+ / FastAPI |
-| IA | Anthropic Claude (claude-haiku) |
+| IA | Anthropic Claude |
 | Base de données | SQLite + SQLAlchemy |
-| Frontend | HTML5 / CSS3 / JavaScript vanilla |
+| Frontend | HTML5 / CSS3 / JavaScript |
 | Mobile | React Native (Expo) |
 
 ---
 
-## 🚀 Installation & Lancement
+## 🚀 Installation
 
 ### Prérequis
 - Python 3.11+
-- Clé API Anthropic
+- Clé API Anthropic ([console.anthropic.com](https://console.anthropic.com))
+- Node.js 18+ (pour l'app mobile)
 
 ### 1. Cloner le projet
 ```bash
-git clone https://github.com/benaboud-roqia/AutoChatbot.git
+git clone https://github.com/ton-username/AutoChatbot.git
 cd AutoChatbot
 ```
 
-### 2. Installer les dépendances
+### 2. Installer les dépendances Python
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 3. Configurer l'environnement
+### 3. Configurer les variables d'environnement
 ```bash
 cp .env.example .env
-# Éditer .env et ajouter ta clé API Anthropic
+# Ouvrir .env et renseigner ta clé API Anthropic
 ```
 
-Contenu du `.env`:
-```
+Contenu minimal du `.env` :
+```env
 ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxx
 CLAUDE_MODEL=claude-haiku-4-5-20251001
-DATABASE_URL=sqlite:///./chatbot_auto.db
+PORT=8000
+HOST=0.0.0.0
 ```
 
 ### 4. Initialiser la base de données
@@ -98,7 +93,7 @@ python seed_data.py
 
 ### 5. Lancer le serveur
 ```bash
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 6. Ouvrir dans le navigateur
@@ -113,19 +108,20 @@ http://localhost:8000
 ```
 AutoChatbot/
 ├── backend/
-│   ├── main.py          # API FastAPI — routes et endpoints
-│   ├── agent.py         # Logique IA — Abdou, outils, process_message
-│   ├── models.py        # Modèles SQLAlchemy (Garage, Piece, Fournisseur...)
-│   ├── schemas.py       # Schémas Pydantic
-│   ├── crud.py          # Opérations base de données
-│   ├── database.py      # Configuration SQLite
-│   ├── seed_data.py     # Données initiales (garages, pièces, fournisseurs)
-│   ├── index.html       # Interface web du chatbot
-│   ├── requirements.txt # Dépendances Python
-│   └── .env.example     # Template variables d'environnement
-├── AutoChatbot/         # App mobile React Native (Expo)
+│   ├── main.py           # API FastAPI — routes et endpoints
+│   ├── agent.py          # Logique IA — Abdou, outils, process_message
+│   ├── models.py         # Modèles SQLAlchemy
+│   ├── schemas.py        # Schémas Pydantic
+│   ├── crud.py           # Opérations base de données
+│   ├── database.py       # Configuration SQLite
+│   ├── seed_data.py      # Données initiales (garages, pièces, fournisseurs)
+│   ├── index.html        # Interface web du chatbot
+│   ├── requirements.txt  # Dépendances Python
+│   └── .env.example      # Template variables d'environnement
+├── AutoChatbot/          # App mobile React Native (Expo)
 │   ├── App.js
 │   └── package.json
+├── .gitignore
 └── README.md
 ```
 
@@ -138,7 +134,6 @@ AutoChatbot/
 | `diagnostic` | Analyse les symptômes de panne |
 | `identification_pieces` | Identifie une pièce par nom/modèle |
 | `prix_stock` | Prix et disponibilité d'une pièce |
-| `commandes` | Prépare une commande de pièces |
 | `trouver_garage` | Trouve un garage dans la wilaya |
 | `trouver_fournisseur` | Trouve un fournisseur de pièces |
 | `entretien_vehicule` | Programme d'entretien par kilométrage |
@@ -152,32 +147,20 @@ AutoChatbot/
 ## 💬 Exemples d'utilisation
 
 ```
-"salam" → Abdou répond chaleureusement en darija
-"garage a ain beida" → Liste les 5 garages d'Aïn Beïda avec téléphones
+"salam"                              → Abdou répond en darija
+"garage a ain beida"                 → Liste les garages avec téléphones
 "ma Dacia Logan fait un bruit en freinant" → Diagnostic + conseils
-"prix plaquettes de frein Symbol" → Prix en DZD + stock
-"prochaine vidange à 87000 km" → Calcul automatique
+"prix plaquettes de frein Symbol"    → Prix en DZD + stock
+"prochaine vidange à 87000 km"       → Calcul automatique
 "je veux acheter une voiture d'occasion" → Checklist complète
 ```
-
----
-
-## 📸 Interface
-
-- Header pastel gradient avec logo CarBot
-- Sidebar historique des conversations
-- Mode sombre / clair
-- Sélecteur de langue (Auto / FR / AR darija)
-- Bouton microphone pour la voix
-- Analyse d'images (photos de pannes)
-- Système de factures PDF avec signature électronique
 
 ---
 
 ## 📄 Licence
 
 Projet académique — Wilaya de Oum El Bouaghi, Algérie.  
-© 2025 Benaboud Roqia, Abdrhmane Aref, ABBA
+© 2025 Benaboud Roqia & Abdrhmane Aref
 
 ---
 

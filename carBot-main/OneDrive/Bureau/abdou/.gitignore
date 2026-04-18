@@ -41,3 +41,14 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets & credentials
+*.pem
+*.key
+*.cert
+backend/.env
+.env.local
+.env.production
+
+# Python virtual env (extra patterns)
+.venv/

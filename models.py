@@ -11,6 +11,7 @@ class Vehicule(Base):
     modele = Column(String, index=True)
     annee = Column(Integer)
     immatriculation = Column(String, unique=True, index=True)
+    motorisation = Column(String, nullable=True)
     
     pieces = relationship("Piece", back_populates="vehicule_compatible")
 
@@ -23,6 +24,7 @@ class Piece(Base):
     description = Column(String)
     prix = Column(Float)
     stock = Column(Integer, default=0)
+    categorie = Column(String, nullable=True)
     vehicule_id = Column(Integer, ForeignKey("vehicules.id"), nullable=True)
     
     vehicule_compatible = relationship("Vehicule", back_populates="pieces")

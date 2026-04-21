@@ -11,6 +11,9 @@ load_dotenv()
 client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
+# ذاكرة المحادثات: session_id -> list of messages
+_session_history: dict[str, list] = {}
+
 tools = [
     {"name": "diagnostic", "description": "Analyse les symptomes d'une panne automobile.", "input_schema": {"type": "object", "properties": {"symptomes": {"type": "string"}}, "required": ["symptomes"]}},
     {"name": "identification_pieces", "description": "Identifie une piece pour le vehicule.", "input_schema": {"type": "object", "properties": {"nom_piece": {"type": "string"}, "modele_vehicule": {"type": "string"}}, "required": ["nom_piece"]}},
@@ -96,8 +99,8 @@ _GARAGE_KW = [
 ]
 
 def _clean(text: str) -> str:
-    text = re.sub(r"[*][*]([^*]+)[*][*]", r"\\1", text)
-    text = re.sub(r"[*]([^*\n]+)[*]", r"\\1", text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    text = re.sub(r"\*([^*\n]+)\*", r"\1", text)
     text = re.sub(r"#{1,6} ?", "", text)
     text = re.sub(r"`+", "", text)
     return text.strip()
@@ -147,8 +150,7 @@ def execute_tool(name: str, inputs: dict) -> str:
                     total += p.prix
                     details.append(f"{p.nom}: {p.prix:.0f} DZD")
             if details:
-                import random as _r
-                return f"Commande OK - {', '.join(details)} - Total: {total:.0f} DZD - N: CMD-{_r.randint(1000,9999)}"
+                return f"Commande OK - {', '.join(details)} - Total: {total:.0f} DZD - N: CMD-{random.randint(1000,9999)}"
             return "Aucune piece disponible."
 
         elif name == "trouver_fournisseur":
@@ -274,9 +276,16 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
 
     if image_b64:
         reply = await analyze_image(image_b64, media_type or "image/jpeg", user_message)
+        # حفظ في التاريخ
+        history = _session_history.setdefault(session_id, [])
+        history.append({"role": "user", "content": user_message or "[image]"})
+        history.append({"role": "assistant", "content": reply})
         return reply, ["vision_analysis"]
 
     msg_lower = user_message.lower().strip()
+
+    # استرجاع تاريخ الجلسة (آخر 10 رسائل لتجنب تجاوز الـ context)
+    history = _session_history.setdefault(session_id, [])
 
     # ETAPE 1: Detection sociale/emotionnelle
     is_social = any(kw in msg_lower for kw in _SOCIAL_KW)
@@ -284,13 +293,17 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
     is_short_nontechnical = len(msg_lower.split()) <= 3 and not any(k in msg_lower for k in tech_kw)
     if is_social or is_short_nontechnical:
         try:
+            messages = history[-10:] + [{"role": "user", "content": user_message}]
             response = await client.messages.create(
                 model=CLAUDE_MODEL, max_tokens=512,
                 system=system_prompt,
-                messages=[{"role": "user", "content": user_message}]
+                messages=messages
             )
             text = _clean("".join(b.text for b in response.content if b.type == "text"))
-            return text or "Ahlan! Comment je peux t aider?", []
+            reply = text or "Ahlan! Comment je peux t aider?"
+            history.append({"role": "user", "content": user_message})
+            history.append({"role": "assistant", "content": reply})
+            return reply, []
         except Exception as e:
             print("Erreur social:", e)
             return "Ahlan! Comment je peux t aider?", []
@@ -318,7 +331,7 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
                 break
         tool_result = execute_tool("trouver_garage", tool_inputs)
         tools_triggered.append("trouver_garage")
-        messages = [
+        messages = history[-8:] + [
             {"role": "user", "content": user_message},
             {"role": "assistant", "content": [{"type": "tool_use", "id": "forced_1", "name": "trouver_garage", "input": tool_inputs}]},
             {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "forced_1", "content": tool_result}]}
@@ -329,13 +342,16 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
                 system=system_prompt, messages=messages
             )
             final_text = _clean("".join(b.text for b in response.content if b.type == "text"))
-            return final_text or _clean(tool_result), tools_triggered
+            reply = final_text or _clean(tool_result)
+            history.append({"role": "user", "content": user_message})
+            history.append({"role": "assistant", "content": reply})
+            return reply, tools_triggered
         except Exception as e:
             print("Erreur Anthropic forced:", e)
             return _clean(tool_result), tools_triggered
 
     # ETAPE 4: Flux normal Claude avec outils
-    messages = [{"role": "user", "content": user_message}]
+    messages = history[-10:] + [{"role": "user", "content": user_message}]
     try:
         response = await client.messages.create(
             model=CLAUDE_MODEL, max_tokens=1024,
@@ -355,7 +371,10 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
                 system=system_prompt, tools=tools, messages=messages
             )
         final_text = _clean("".join(b.text for b in response.content if b.type == "text"))
-        return final_text or "Desole, pas de reponse.", tools_triggered
+        reply = final_text or "Desole, pas de reponse."
+        history.append({"role": "user", "content": user_message})
+        history.append({"role": "assistant", "content": reply})
+        return reply, tools_triggered
     except Exception as e:
         print("Erreur Anthropic:", e)
         return "Desole, j ai un petit souci technique. Reessaie dans un instant!", tools_triggered

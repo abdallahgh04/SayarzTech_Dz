@@ -230,6 +230,7 @@ def seed_database():
                 description=p["description"],
                 prix=p["prix"],
                 stock=p["stock"],
+                categorie=p.get("categorie"),
             )
             db.add(piece)
             pieces.append(piece)

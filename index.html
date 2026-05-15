@@ -825,7 +825,11 @@
     }
 
     function saveHistory() {
-        localStorage.setItem('autochat_history', JSON.stringify(conversations));
+        try {
+            localStorage.setItem('autochat_history', JSON.stringify(conversations));
+        } catch(e) {
+            console.warn('localStorage error:', e);
+        }
         renderHistory();
     }
 
@@ -909,7 +913,7 @@
             conversations.push(conv);
         }
         conv.messages.push({ text, isUser, imageUrl: imageUrl || null, time });
-        try { saveHistory(); } catch(e) { console.warn('saveHistory error:', e); }
+        saveHistory();
     }
 
     function createTypingBubble() {

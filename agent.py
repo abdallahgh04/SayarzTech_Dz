@@ -8,8 +8,15 @@ from database import SessionLocal
 import models
 
 load_dotenv()
-client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
+
+if not ANTHROPIC_API_KEY:
+    import warnings
+    warnings.warn("⚠️  ANTHROPIC_API_KEY manquant! Créez un fichier .env avec votre clé API.")
+
+client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
 
 # ذاكرة المحادثات: session_id -> list of messages
 _session_history: dict[str, list] = {}
@@ -306,6 +313,8 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
             return reply, []
         except Exception as e:
             print("Erreur social:", e)
+            if "api_key" in str(e).lower() or "authentication" in str(e).lower() or "401" in str(e):
+                return "❌ Clé API Anthropic invalide ou manquante. Vérifiez votre fichier .env", []
             return "Ahlan! Comment je peux t aider?", []
 
     # ETAPE 2: Detection ville
@@ -348,6 +357,8 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
             return reply, tools_triggered
         except Exception as e:
             print("Erreur Anthropic forced:", e)
+            if "api_key" in str(e).lower() or "authentication" in str(e).lower() or "401" in str(e):
+                return "❌ Clé API Anthropic invalide ou manquante. Vérifiez votre fichier .env", tools_triggered
             return _clean(tool_result), tools_triggered
 
     # ETAPE 4: Flux normal Claude avec outils
@@ -377,4 +388,8 @@ async def process_message(user_message: str, session_id: str, image_b64=None, me
         return reply, tools_triggered
     except Exception as e:
         print("Erreur Anthropic:", e)
+        if "api_key" in str(e).lower() or "authentication" in str(e).lower() or "401" in str(e):
+            return "❌ Clé API Anthropic invalide ou manquante. Vérifiez votre fichier .env", tools_triggered
+        if "rate_limit" in str(e).lower() or "429" in str(e):
+            return "⏳ Limite de requêtes atteinte. Réessayez dans quelques secondes.", tools_triggered
         return "Desole, j ai un petit souci technique. Reessaie dans un instant!", tools_triggered

@@ -597,19 +597,19 @@
                 <!-- Garage info -->
                 <div class="form-section-title">Informations du Garage / Vendeur</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Nom du garage</label><input id="f_garage_nom" placeholder="Ex: Garage Abdou" /></div>
-                    <div class="form-group"><label>Téléphone</label><input id="f_garage_tel" placeholder="0550 000 000" /></div>
-                    <div class="form-group"><label>Adresse</label><input id="f_garage_adr" placeholder="Aïn Mlila, Oum El Bouaghi" /></div>
-                    <div class="form-group"><label>RC / NIF</label><input id="f_garage_rc" placeholder="RC: 00000 / NIF: 000000" /></div>
+                    <div class="form-group"><label for="f_garage_nom">Nom du garage</label><input id="f_garage_nom" placeholder="Ex: Garage Abdou" /></div>
+                    <div class="form-group"><label for="f_garage_tel">Téléphone</label><input id="f_garage_tel" placeholder="0550 000 000" /></div>
+                    <div class="form-group"><label for="f_garage_adr">Adresse</label><input id="f_garage_adr" placeholder="Aïn Mlila, Oum El Bouaghi" /></div>
+                    <div class="form-group"><label for="f_garage_rc">RC / NIF</label><input id="f_garage_rc" placeholder="RC: 00000 / NIF: 000000" /></div>
                 </div>
 
                 <!-- Client info -->
                 <div class="form-section-title">Informations du Client</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>Nom du client</label><input id="f_client_nom" placeholder="Nom complet" /></div>
-                    <div class="form-group"><label>Téléphone</label><input id="f_client_tel" placeholder="0550 000 000" /></div>
-                    <div class="form-group"><label>Adresse</label><input id="f_client_adr" placeholder="Adresse du client" /></div>
-                    <div class="form-group"><label>Véhicule</label><input id="f_client_veh" placeholder="Ex: Dacia Logan 2018" /></div>
+                    <div class="form-group"><label for="f_client_nom">Nom du client</label><input id="f_client_nom" placeholder="Nom complet" /></div>
+                    <div class="form-group"><label for="f_client_tel">Téléphone</label><input id="f_client_tel" placeholder="0550 000 000" /></div>
+                    <div class="form-group"><label for="f_client_adr">Adresse</label><input id="f_client_adr" placeholder="Adresse du client" /></div>
+                    <div class="form-group"><label for="f_client_veh">Véhicule</label><input id="f_client_veh" placeholder="Ex: Dacia Logan 2018" /></div>
                 </div>
 
                 <!-- Items -->
@@ -630,7 +630,7 @@
 
                 <!-- TVA -->
                 <div class="tva-select-row" style="margin-top:14px;">
-                    <label>TVA :</label>
+                    <label for="tvaSelect">TVA :</label>
                     <select id="tvaSelect" onchange="updateTotals()">
                         <option value="0">0% (exonéré)</option>
                         <option value="9">9%</option>
